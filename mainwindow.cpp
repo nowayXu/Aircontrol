@@ -25,6 +25,7 @@ QStringList m_serialPortName;
 QStringList m_serialPortInfo;
 
 //这样我们就获取到 可用的串口名字了
+//1111111111111111
 
 
 
