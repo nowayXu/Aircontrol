@@ -6,6 +6,23 @@
 #include <QMainWindow>
 #include <QtCharts/QChartGlobal>
 
+#include <iostream>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
+#include <QMessageBox>
+#include <QDebug>
+#include <regex>
+
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QSplineSeries>
+#include <QtCharts/QScatterSeries>
+#include <QtWidgets/QLabel>
+#include <QtCore/QRandomGenerator>
+#include <QtCharts/QValueAxis>
+
+#include <QTimer>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -45,6 +62,23 @@ public:
     QString InTime; //用来给单片机发送充气时间
     QString OutTime; //用来给单片机发送充气时间
 
+
+    QTimer *timerline;   //声明一个定时器
+
+
+    QLineSeries *series;  //折线数据集
+    QChart *serialchart;  //折线表
+    QValueAxis *AxisX;    //x，y轴
+    QValueAxis *AxisY;
+    int i=1;            //全局变量坐标轴X的值
+
+
+protected:
+    void GetSeries();                //用于获取更新的点
+    void dealClose();                 //用于关闭“x”操作
+
+
+
 private slots:
 
     void SearchCom();
@@ -60,8 +94,10 @@ private slots:
     void on_radioButton_switchCom_clicked();
     void on_comboBox_baudrate_currentTextChanged(const QString &arg1);
 
+
     DataTable generateRandomData(int listCount, int valueMax, int valueCount) const;
     QChart *createSplineChart() const;
+
 
 
 

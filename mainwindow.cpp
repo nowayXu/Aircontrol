@@ -1,26 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <iostream>
-#include <QtSerialPort/QSerialPort>
-#include <QtSerialPort/QSerialPortInfo>
-#include <QMessageBox>
-#include <QDebug>
-#include <regex>
 
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QSplineSeries>
-#include <QtCharts/QScatterSeries>
-#include <QtWidgets/QLabel>
-#include <QtCore/QRandomGenerator>
-#include <QtCharts/QValueAxis>
-
-#include <QTimer>
 
 
 using namespace std;
 
-QSerialPort *m_serialPort = new QSerialPort();//实例化串口类一个对象
+QSerialPort *m_serialPort = new QSerialPort();  //实例化串口类一个对象
 QStringList m_serialPortName;
 QStringList m_serialPortInfo;
 
@@ -43,37 +28,73 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     SearchCom();
-
     //  气囊尺寸 计数  初始化
     inAirCut = 0;
     outAirCut = 0;
     setCut = 0;
     airSize = 0;
 
-
+    //闪 烁  的灯
     Buling_Flag = true;
     BulingBuling_interval = 500;
     BulingBuling = new QTimer();
     BulingBuling->setInterval(BulingBuling_interval);
     connect(BulingBuling,SIGNAL(timeout()),this,SLOT(Buling_timeout()));
-    BulingBuling->start(BulingBuling_interval);
-
+    BulingBuling->start(BulingBuling_interval);    
     //充气放气 时间 初始化
 //    InTime="500";
 //    ui->InAirTime_lcdNumber->display(InTime);
-
-
-
 //    OutTime="500";
 //    ui->OutAirTime_lcdNumber->display(OutTime);
 
 
 
-    //create charts
+
+    //create charts 绘制 图表
     QChartView *chartView;
     chartView = new QChartView(createSplineChart());
     ui->gridLayout_charts->addWidget(chartView);
     m_charts << chartView;
+
+    series = new QLineSeries(); //画线实例
+    serialchart = new QChart();//创建表格
+
+    //填充数据集
+    series->append(0,70); //必须先设置一个点，数据才能与轴相连接
+    series->setVisible(true);//设置数据点可见
+    serialchart->legend()->hide();//图例隐藏
+    serialchart->addSeries(series);//增加数据集到chart
+    serialchart->setTitle("中心距变化");//设置标题
+
+    //自定义坐标轴
+        QValueAxis *AxisX= new QValueAxis();
+        AxisX->setRange(0, 1000);
+        AxisX->setTitleText("X");
+        AxisX->setTickCount(1); // 横坐标被10等分刻度显示
+        QValueAxis *AxisY = new QValueAxis;
+        AxisY->setRange(0,170); // 设置坐标轴范围
+        AxisY->setTitleText(QString::fromLocal8Bit("Y")); // 设置Y轴坐标
+        AxisY->setTickCount(1); // 纵坐标被10等分刻度显示
+
+        // 图表添加坐标轴
+           serialchart->setAxisX(AxisX,series);//设置chart的坐标轴
+           serialchart->setAxisY(AxisY,series);
+           series->attachAxis(AxisX);//连接数据集与坐标轴，如果不连接，数据集与坐标轴的尺度就不同
+           series->attachAxis(AxisY);
+
+           //定时器
+               timerline = new QTimer();//创建一个定时器
+               timerline->setInterval(500);//时间间隔1s
+
+               //槽连接
+               connect(timerline,&QTimer::timeout,this,&MainWindow::GetSeries);//槽连接定时器和更新点集
+               connect(this,&MainWindow::destroyed,this,&MainWindow::dealClose);//关闭窗口槽
+
+               //显示表格，抗锯齿
+               ui->     ->setChart(serialchart);
+               ui->MainWindow->setRenderHint(QPainter::Antialiasing,true);
+
+
 
 
 
@@ -391,4 +412,48 @@ void MainWindow::on_pushButton_clicked()
     //一点 这个按钮，就停止、开始闪烁
     //disconnect(m_serialPort,SIGNAL(readyRead()),this,SLOT(ReceiveInfo()));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
